@@ -89,3 +89,10 @@ const subTodoSchema = new mongoose.Schema(
 export const SubTodo = mongoose.model('SubTodo', subTodoSchema);
 
 ```
+
+## updated info
+```javascript
+ app.get(('/'),(error,req,res,next)=>{
+
+ })
+```
