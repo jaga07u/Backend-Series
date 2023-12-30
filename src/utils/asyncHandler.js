@@ -7,7 +7,11 @@ const asyncHandler=(requestHandler)=>{
 
 export {asyncHandler}
 
+// const asyncHandler =()=>{}
+// const asyncHandler = (func)=>{}
+// const asyncHandler = (func)=>{()=>{}} or //=> ()=>{}
 
+//********//
 // const asyncHandler = (fn)=> async (req,res,next)=>{
 //   try {
 //     await fn(req,res,next)
