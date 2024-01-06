@@ -3,7 +3,7 @@ const asyncHandler=(requestHandler)=>{
         Promise.resolve(requestHandler(req,res,next)).catch((err)=>next(err))
      }
 }
-export {asyncHandler}
+export {asyncHandler}    ///***DOUBT***// why it use 
 // const asyncHandler =()=>{}
 // const asyncHandler = (func)=>{}
 // const asyncHandler = (func)=>{()=>{}} or //=> ()=>{}
