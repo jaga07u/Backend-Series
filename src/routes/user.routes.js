@@ -20,7 +20,7 @@ router.route("/register").post(
     ]),
     registerUser
     )
-
+//setting
 
     router.route("/login").post(loginUser)
 
