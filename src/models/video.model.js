@@ -8,7 +8,7 @@ const videoSchema=new Schema({
         type:String, //cloudnary url
         required:true,
      },
-     thumbnai:{
+     thumbnail:{
         type:String, //cloudnary url
         required:true,
      },
@@ -24,10 +24,12 @@ const videoSchema=new Schema({
         type:Number, //cloudnary url
         required:true,
      },
-     views:{
-        type:Number,
-        default:0
-     },
+     views:[
+      {
+         type:Schema.Types.ObjectId,
+         ref:"User"
+      }
+     ],
      isPublished:{
         type:Boolean,
         default:true

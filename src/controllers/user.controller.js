@@ -5,6 +5,8 @@ import {UploadOnCloudnary} from '../utils/Cloudnary.js'
 import {ApiResponse} from '../utils/ApiResponse.js'
 import jwt from 'jsonwebtoken'
 import mongoose from 'mongoose'
+import {v2 as cloudinary} from 'cloudinary';
+
 
 
 
@@ -52,7 +54,7 @@ const registerUser=asyncHandler(async(req,res)=>{
    if(existenUser){
     throw new ApiError(409,"User with email or user name already exists")
    }
-     console.log(req.files);
+    // console.log(req.files);
 const avatarLocalPath= req.files?.avatar[0]?.path;
 const coverImageLocalPath= req.files?.coverImage[0]?.path;
 
@@ -61,6 +63,7 @@ const coverImageLocalPath= req.files?.coverImage[0]?.path;
  }
  const avatar=await UploadOnCloudnary(avatarLocalPath);
  const coverImage= await UploadOnCloudnary(coverImageLocalPath);
+ //console.log(avatar);
   
  if(!avatar){
     throw new ApiError(400,"avatar file is required");
@@ -143,10 +146,13 @@ const logoutUser=asyncHandler(async(req,res)=>{
    await User.findByIdAndUpdate(
       req.user._id,
       {
-         $set:{
-            refreshToken:undefined
+         $unset:{
+            refreshToken:1
          }
-      }
+         },
+         {
+            new:true
+         }
    ) 
    const options={
       httpOnly:true,
@@ -205,13 +211,16 @@ const refreshAccessToken=asyncHandler(async(req,res)=>{
 })
 
 const changeCurrentPassword=asyncHandler(async(req,res)=>{
+   console.log(req.body);
    const {oldpassword,newPassword}=req.body
-   const user=User.findById(req.user?._id);
+   const user=await User.findById(req.user?._id);
+   console.log(oldpassword);
+   //console.log(newPassword);
   const isPasswordCorrect=await user.isPasswordCorrect(oldpassword);
-  if(isPasswordCorrect){
+  console.log(isPasswordCorrect);
+  if(!isPasswordCorrect){
    throw new ApiError(400,"Invalid old password");
   }
-
   user.password=newPassword;
   await user.save({validateBeforeSave:false})
 
@@ -222,7 +231,7 @@ const changeCurrentPassword=asyncHandler(async(req,res)=>{
 const getCurrentUser=asyncHandler(async(req,res)=>{
    return res
    .status(200)
-   .json(200,req.user,"current user fetched successfully");
+   .json(new ApiResponse(200,req.user,"current user fetched successfully"));
 })
 const updateAccountDetails=asyncHandler(async(req,res)=>{
 
@@ -251,6 +260,11 @@ const updateUserAvatar=asyncHandler(async(req,res)=>{
       throw new ApiError(400,"Avatar file is misssing");
    }
    //TODO Delete Old Avatar
+   const userdetail=await User.findById(req.user?._id);
+   const avatardata=(userdetail.avatar)?.split('/');
+   const avatarlastelem=avatardata[avatardata?.length-1].split(".");
+   // console.log(avatardata);
+   // console.log(avatarlastelem);
   const avatar= await UploadOnCloudnary(avatarLocalPath);
   if(!avatar.url){
    throw new ApiError(400,"Error while uploading on avatar");
@@ -260,7 +274,9 @@ const updateUserAvatar=asyncHandler(async(req,res)=>{
    $set:{
       avatar:avatar.url
    }
- },{new:true}).select("-password")
+ },{new:true}).select("-password");
+  
+ await cloudinary.uploader.destroy(avatarlastelem[0]);
  return res
  .status(200)
  .json(new ApiResponse(200,user,"Avatar image updated successfully"))
@@ -271,6 +287,11 @@ const updateUserCoverImg=asyncHandler(async(req,res)=>{
       throw new ApiError(400,"Avatar file is misssing");
    }
   const CoverImg= await UploadOnCloudnary(CoverLocalPath);
+  const userdetail=await User.findById(req.user?._id);
+   const coverImgdata=(userdetail.coverImage)?.split('/');
+   console.log(coverImgdata);
+   const coverImgID=coverImgdata[coverImgdata?.length-1].split(".");
+   console.log(coverImgID);
   if(!CoverImg.url){
    throw new ApiError(400,"Error while uploading on avatar");
   }
@@ -280,7 +301,7 @@ const updateUserCoverImg=asyncHandler(async(req,res)=>{
       coverImage:CoverImg.url
    }
  },{new:true}).select("-password");
-
+ await cloudinary.uploader.destroy(coverImgID[0]);
  return res
  .status(200)
  .json(new ApiResponse(200,user,"CoverImg Updated Successfully"));
