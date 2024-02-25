@@ -11,6 +11,35 @@ import { v2 as Cloudnary} from "cloudinary"
 const getAllVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
     //TODO: get all videos based on query, sort, pagination
+    const sortOptions = {};
+  if (sortBy) {
+    sortOptions[sortBy] = sortType == "desc" ? -1 : 1;
+  }
+  try {
+    const result = await Video.aggregate([
+      {
+        $match: {
+          $or: [
+            { title: { $regex: query, $options: "i" } },
+            { description: { $regex: query, $options: "i" } },
+          ],
+          owner: userId,
+        },
+      },
+      {
+        $sort: sortOptions,
+      },
+      {
+        $skip: (page - 1) * limit,
+      },
+      {
+        $limit: parseInt(limit),
+      },
+    ]);
+    return res.status(200).json(new ApiResponse(200, { result }, "Success"));
+  } catch (e) {
+    throw new ApiError(500, e.message);
+  }
 })
 
 const publishAVideo = asyncHandler(async (req, res) => {
